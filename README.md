@@ -20,7 +20,7 @@ This repository is an attempt to consolidate a project I’ve been  playing arou
 
 **models folder** stores the model create from the python notebook.
 
-**reports folder** contains the **html** version of the EDA notebook, completed in **RStudio**. The contents of this can also be viewed on the blog post [here](https://aaronbjohnson.github.io/project-estimator-continued-using-r.html)
+**reports folder** contains the **html** version of the EDA notebook, completed in **RStudio**. The contents of this can also be viewed on the blog post [here](https://aaronbjohnson.github.io/project-estimator-continued-using-r.html).
 
 **plots** folder contains an saved plots from the EDA.
 
