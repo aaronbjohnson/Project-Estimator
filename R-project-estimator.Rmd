@@ -1,0 +1,291 @@
+---
+title: "Project Estimator Continued (Using R)"
+author: "Aaron Johnson"
+date: "April 24, 2019"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+setwd("C:/Users/Aaron/Dropbox/Documents/coding/data/20190424_projectEstimator")
+```
+
+```{r, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(corrplot)
+```
+
+
+## Introduction
+
+In this notebook I will continue to explore the data I've collected from my business in order to create a project length estimator. 
+
+In the past, the best model predictions came from using a linear SVC
+algorithm. However, I'd like to try using Linear Regression since I have more data to work with. Also, with Linear Regression I'll have the added benefit of the model being more interpretable.
+
+In previous iterations of this exploration, I created the variable **hour_page** by taking the total
+number of hours to complete the project (hours) divided by the total number of
+pages in the final project (number_pages). I then used this variable to create
+a difficulty rating for each project. Since the complexity of a project can
+vary, I needed a way to guess at a project's difficulty at the beginning. If
+you're interested in more detail about how and why I created the difficulty
+variable, or for more background in general, check my previous post [here](https://aaronbjohnson.github.io/first-post.html).
+
+The difficulty variable was created by dividing the **hour_page** variable's range by 5 to get 5 difficulty levels. However, I think there is a better way to divide this difficulty column, other than just an even division.
+
+Let's take a look at the data.
+
+```{r}
+df <- read.csv('./data/engineered_data.csv')
+head(df)
+```
+
+
+```{r}
+str(df)
+```
+Let's convert the **difficulty** variable to a factor.
+```{r}
+df$difficulty <- as.factor(df$difficulty)
+```
+
+```{r}
+summary(df)
+```
+
+Here is where we can start to see the problem with how I've originally created the **difficulty** column. About **83 percent** of the projects have a difficulty level of 1. We can also see that I'm not really making use of the 3, 4, and 5 difficulty levels, as they each only have 1 project assigned to them. 
+
+Let's move on to investigating more by creating some visuals.
+
+##EDA
+
+First let's look at the target variable **hours** vs **number_pages**, colored by case type.
+
+```{r}
+ggplot(df, aes(x=number_pages, y=hours)) + 
+  geom_point(aes(color=case_type),alpha=0.5) +
+  theme_bw()
+```
+
+Here we can see what looks like a linear relationship between **hours** and **number_pages**. There is more variance, however, when we get an increase in page counts. As mentioned in previous explorations of this data, this is due to the fact that some projects have quite a bit more complexity than others. For this reason, I need a way to assign a difficulty rating to a project I'm estimating so that I can narrow the range of possible variance for the predicted hours variable.
+
+Let's now take a look at the same plot, but colored by difficulty instead of case type.
+
+```{r}
+ggplot(df, aes(x=number_pages, y=hours)) + 
+  geom_point(aes(color=factor(difficulty)),alpha=0.5) +
+  theme_bw()
+```
+
+This highlights the problem I mentioned earlier about how we aren't really making full use of the engineered **difficulty** variable. We can see the single instances of the projects with the 3, 4, and 5 difficulty levels.
+
+In order to make a better decision about where to make the divisions for the **difficulty** variable, let's take a look at the distribution of our predicted **hours** variable.
+
+```{r}
+ggplot(df, aes(hour_page)) +
+  geom_histogram(aes(fill=case_type), color='black', bins = 50) +
+  theme_bw()
+```
+
+Let's smooth this out by looking at a density plot.
+
+
+```{r}
+ggplot(df, aes(hour_page)) +
+  geom_density()
+```
+
+Here we can see good evidence that it doesn't make sense to break up the difficulty variable *evenly*. 
+
+This visualization reflects what I see see day-to-day in my business: the majority of the projects are similar enough in that they take roughly the same amount of time -- per page -- to complete. These would be my *normal* projects. I would like a difficulty level below *normal* however, in order to catch those projects that are more simple and take quite a bit less time per page. Then it's nice to have a few difficulty levels above the norm for those less-common, more complex projects.
+
+This graph shows that the *vast* majority of cases take between 0.2 and about 1.25 hours per page. The rest are pretty rare, so I can divide up my level of difficulty cutoffs to reflect this. Let's visually show where I might make these divisions based on the above graphs.
+
+```{r}
+ggplot(df, aes(hour_page)) +
+  geom_density() +
+  geom_vline(xintercept = 0.5) +
+  geom_vline(xintercept = 1.25) +
+  geom_vline(xintercept = 2.5) +
+  geom_vline(xintercept = 3.75) +
+  theme_bw()
+```
+
+Let's create a function to divide the **hour_page** variable based on these new insights. 
+
+```{r}
+create_difficulty <- function(x){
+  if (x < 0.5){
+    return(1)
+  } else if (x >= 0.5 & x < 1.25){
+    return(2)
+  } else if (x >= 1.25 & x < 2.5){
+    return(3)
+  } else if (x >= 2.5 & x < 3.75){
+    return(4)
+  } else{
+    return(5)
+  }
+}
+```
+
+Next, we'll apply the function to the **hour_page** column. We can simply over-write the existing **difficulty** column since those old values are no longer desired.
+```{r}
+df$difficulty <- sapply(df$hour_page, create_difficulty)
+```
+
+```{r}
+head(df)
+```
+
+Let's take another look at the scatter plot from above with these new divisions.
+
+```{r}
+ggplot(df, aes(x=number_pages, y=hours)) + 
+  geom_point(aes(color=factor(difficulty)),alpha=0.5) +
+  theme_bw()
+```
+
+In the above graph we can easily see that we are utilizing all the difficulty levels. Let's now look at the difficulty levels individually as they relate to hours.
+
+Let's look at the projects with a difficulty of 1.
+```{r}
+level.one <- df %>% filter(difficulty == 1)
+```
+```{r}
+ggplot(level.one, aes(x=number_pages, y=hours)) + 
+  geom_point(aes(color=case_type),alpha=0.5) +
+  theme_bw()
+```
+
+Projects with a difficulty of 2:
+```{r}
+level.two <- df %>% filter(difficulty == 2)
+```
+```{r}
+ggplot(level.two, aes(x=number_pages, y=hours)) + 
+  geom_point(aes(color=case_type),alpha=0.5) +
+  theme_bw()
+```
+
+Level 3:
+```{r}
+level.three <- df %>% filter(difficulty == 3)
+```
+```{r}
+ggplot(level.three, aes(x=number_pages, y=hours)) + 
+  geom_point(aes(color=case_type),alpha=0.5) +
+  theme_bw()
+```
+
+We also see that it's pretty rare to have a **design** project in this difficulty level. With the above visuals, there appears to be an even stronger linear relationship between each difficulty level's hours and number of pages.
+
+Let's move on to creating our Linear Regression model.
+
+## Building the Model
+
+We'll select only the features we want to model. We don't need the **hour_page** column, as it was used only to make the **difficulty** column.
+
+```{r}
+final_df <- df %>% select(case_type, number_pages, X3d_modeling, difficulty, hours)
+```
+
+
+### Train Test Split
+```{r}
+library(caTools)
+
+#Split the sample
+
+sample <- sample.split(final_df$hours, SplitRatio = 0.7)
+
+#Training Data
+train = subset(final_df, sample=TRUE)
+
+#Test Data
+test = subset(final_df, sample=FALSE)
+```
+
+### Train the Model
+
+```{r}
+model <- lm(hours ~ ., train)
+```
+
+
+```{r}
+summary(model)
+```
+
+## Stepwise Algorithm
+
+Here we'll use the stepwise algorithm to select only the varaibles that have a statistically significant impact on **hours**.
+
+```{r}
+new.step.model <- step(model)
+```
+
+
+```{r}
+summary(new.step.model)
+```
+
+
+## Predictions
+
+```{r}
+hours.predictions <- predict(new.step.model, test)
+```
+
+```{r}
+results <- cbind(hours.predictions, test$hours)
+colnames(results) <- c("pred", "real")
+results <- as.data.frame(results)
+```
+
+Taking care of negative predictions.
+```{r}
+to_zero <- function(x){
+  if(x < 0){
+    return(0)
+  } else{
+    return(x)
+  }
+}
+```
+
+```{r}
+results$pred <- sapply(results$pred, to_zero)
+```
+
+### Mean Squared Error
+
+```{r}
+mse <- mean((results$real - results$pred)^2)
+print(mse)
+```
+
+With the above MSE I now have a baseline to measure against future linear regression models. 
+
+## Conclusion
+
+The above EDA was very productive in that I was able to assign **difficulty** value that was more representative of the distribution of the data. 
+
+The Linear Regression model was not very strong, but it does serve to give me a starting point when making an estimation. I've tested it out on a few recent projects, and I was pleased with the level of accuracy. 
+
+One thing that has proved to be important for this project predictor is to come up with a better way to describe the perceived difficulty of the project at the outset. In the above EDA, we addressed this by looking at the distribution of the **hours** variable. While I think this does give us a good idea of how to assign a difficulty - much better than what I was using before - I'm curious now to look at the data in terms of a classification problem. There, I'd try to find better ways of classifying what constitutes a level 2 difficulty versus a level 4 difficulty, for example.
+
+But as always, I will continue to collect more data as time goes on. I look forward to finding better models to serve as a project-length predictor. Thanks for checking this out!
+
+
+
+
+
+
+
