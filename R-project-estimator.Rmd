@@ -147,9 +147,11 @@ head(df)
 Let's take another look at the scatter plot from above with these new divisions.
 
 ```{r}
-ggplot(df, aes(x=number_pages, y=hours)) + 
-  geom_point(aes(color=factor(difficulty)),alpha=0.5) +
-  theme_bw()
+diff_plt <- ggplot(df, aes(x=number_pages, y=hours)) + 
+        geom_point(aes(color=factor(difficulty)),alpha=0.5) +
+        theme_bw() +
+        labs(title = "Number of Pages vs. Project Length\n", x = "Number of Pages", y = "Length of Project (hours)", color = "Difficulty Level") 
+diff_plt
 ```
 
 In the above graph we can easily see that we are utilizing all the difficulty levels. Let's now look at the difficulty levels individually as they relate to hours.
