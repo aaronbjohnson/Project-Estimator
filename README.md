@@ -2,7 +2,7 @@
 
 ![Caption for the picture.](/plots/plot.png)
 
-This repository is an attempt to consolidate a project I’ve been  playing around with for a while. The idea is to use data that I collect from my freelance business in order to make giving estimations to my clients both more efficient and more accurate. For more info on my business and why I’m modeling this data, check out my initial post on my blog [here](https://aaronbjohnson.github.io/first-post.html)
+This repository is an attempt to consolidate a project I’ve been  playing around with for a while. The idea is to use data that I collect from my freelance business in order to make giving estimations to my clients both more efficient and more accurate. For more info on my business and why I’m modeling this data, check out my initial post on my blog [here](https://aaronbjohnson.github.io/first-post.html).
 
 ## Contents
 
