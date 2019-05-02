@@ -10,7 +10,7 @@ This repository is an attempt to consolidate a project I’ve been  playing arou
 
 **predictor_linear_<date>.py** uses the model created by the python notebook to make new predictions based on user inputs. As I'm always gathering new data, this file name will always change based on how recently I've appended new data. Keeping a record of when I created a particular model helps me to compare one model to another and to trace back problems.
 
-**R-project-estimator.Rmd** contains the Exploratory Data Analysis and visualizations. A web-friendly version of this can be found in the **reports** folder, or in [this blog post](update).
+**R-project-estimator.Rmd** contains the Exploratory Data Analysis and visualizations. A web-friendly version of this can be found in the **reports** folder, or in [this blog post](https://aaronbjohnson.github.io/project-estimator-continued-using-r.html).
 
 **utilities.py** contains a few functions to make things easier. For example, there is a function that will encode a binary categorical variable given a dataframe and column name.
 
@@ -18,7 +18,7 @@ This repository is an attempt to consolidate a project I’ve been  playing arou
 
 **models folder** stores the model create from the python notebook.
 
-**reports folder** contains the **html** version of the EDA notebook, completed in **RStudio**. The contents of this can also be viewed on the blog post [here](update)
+**reports folder** contains the **html** version of the EDA notebook, completed in **RStudio**. The contents of this can also be viewed on the blog post [here](https://aaronbjohnson.github.io/project-estimator-continued-using-r.html)
 
 
 
@@ -40,7 +40,7 @@ The model will then run and will output its estimation of the project length in 
 If you discover any bugs, feel free to create an issue on GitHub. I also
 encourage you to help even more by forking and sending me a pull request.
 
-https://github.com/aaronbjohnson/update this at end
+https://github.com/aaronbjohnson/Project-Estimator
 
 ## Maintainers
 
